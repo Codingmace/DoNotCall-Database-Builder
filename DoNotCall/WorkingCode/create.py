@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from datetime import datetime, timedelta, date
-
+import time
 
 def validResponse(statusCode):
     if (statusCode == 200):
@@ -66,8 +66,8 @@ def createDatabase(dncApiKey, offset):
             offset += 1
             continue # Don't want to recall a file that already exists
         response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + form + "\"")
-        print(response.text)
-        if form == "2021-01-30":
+#        print(response.text)
+        if form == "2020-02-14":
             moreDays = False
         if not validResponse(response.status_code):
             subDays.close()
@@ -81,7 +81,7 @@ def createDatabase(dncApiKey, offset):
         offset += 1
         recordCount = data['meta']['record-total']
         if recordCount == 0:
-            print("the day is invalid but still recorded. Skip")
+            print("The day " + form + " is invalid but still recorded.")
             continue
         output = open(str("Base\\" +form +".json"), "w")
         leftOver = int(recordCount) % 50
@@ -115,6 +115,7 @@ def initalizeDatabase():
 
     # Add a part to continue where left off in the toRead File
     for line in lines:
+        line=line.strip()
         offset = createDatabase(line,offset)
         createdDatabase = offset == -1
         if not createdDatabase:
@@ -122,8 +123,7 @@ def initalizeDatabase():
             offset += 1
         else:
             print("That was successful and we created the database")
-        # Probably wait a little time and write where stopped
-        input("Press any key to exit: ")
+        time.sleep(5) # Probably wait a little time and write where stopped
 
-
+initalizeDatabase()
 print("The code has been tested and works")
