@@ -3,13 +3,20 @@ import json
 import requests
 from datetime import datetime, timedelta, date
 import time
-# A connection error occured
+import send2trash
+
+# A connection error occured, Add a validator for input
+# Need to check that the folders are complete before crushing them
+# Update richer for multiple keys
+# Could have an issue with removing the folders. check back in a little.
+# Need to move it to the Log for printouts
 
 # Consistant Variables
 baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
 
 def validResponse(statusCode):
     if (statusCode == 200):
+        time.sleep(.45) # So we don't overrequest from the system
         return True
     elif (statusCode == 429):
         print("Rate has been exceeded")
@@ -213,51 +220,75 @@ def maximum(fileList):
             input()
     return max(numbers)
 
-def richer(dncApiKey):
-    print("Does the enrichment of the data")
-    subDays = open("Done/toRead.txt", "r") # For the sub parts
-    lines = subDays.readlines()
-    currentDir = "Base/"
-    # Chec if the folder exists. Maybe rewrite the file. For now ignoring it
-    for line in lines:
-        # Check to see if file already exist so I don't waste time
-        splits = line.split(" ")
-        offsetCount = 0
-        currentDir = "Base/" + splits[0]
-        if os.path.exists(currentDir): # Check if everything there
-            if os.path.exists(currentDir + "/" + splits[1] +".json"): # Last file exists
-                print("Skip this folder because it is already done")
-                continue
-            else: # Continue where left off
-                print("Continue at the biggest number file in that folder")
-                subFiles = os.listdir(currentDir)
-                offsetCount = maximum(subFiles)
-        else:
-            print("It doesn't exist so creating it myself")
-            os.makedirs(currentDir)
-
-        lastEntry = int(splits[1])
-        while (offsetCount < lastEntry):
-            response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
-            if not validResponse(response.status_code):
-                return "Did not finish. Please Rerun"
-            data = response.json()
-            response.close()
-            data = cleanJson(data)
-            output = open(currentDir + "/" + str(offsetCount) + "-" + str(offsetCount + 50) + ".json", "w")
-            json.dump(data, output)
-            output.flush()
-            output.close()
-            offsetCount += 50
-        print("Finished with " + splits[0]) # Printout is wrong Printing next entry
-    return "Awesome. It actually finished"
+def richer(dncApiKeys):
+    count= 0
+    while len(dncApiKeys) > 0:
+        print("Does the enrichment of the data")
+        baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
+        subDays = open("Done/toRead.txt", "r") # For the sub parts
+        lines = subDays.readlines()
+        currentDir = "Base/"
+        # Check if the folder exists. Maybe rewrite the file. For now ignoring it
+        for line in lines:
+            # Check to see if file already exist so I don't waste time
+            splits = line.split(" ")
+            offsetCount = 0
+            currentDir = "Base/" + splits[0]
+            if os.path.exists(currentDir): # Check if everything there
+                if os.path.exists(currentDir + "/" + splits[1] +".json"): # Last file exists
+                    print("Skip this folder because it is already done")
+                    continue
+                else: # Continue where left off
+                    print("Continue at the biggest number file in that folder")
+                    subFiles = os.listdir(currentDir)
+                    offsetCount = maximum(subFiles)
+            else:
+                print("It doesn't exist so creating it myself")
+                os.makedirs(currentDir)
+            lastEntry = int(splits[1])
+            while (offsetCount < lastEntry):
+                if len(dncApiKeys) == 0:
+                    return "Did not finish. Please ReRun"
+                curIndex = count % len(dncApiKeys)
+                dncApiKey = dncApiKeys[curIndex].strip()
+                count += 1
+                response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
+                time.sleep(.85)
+                if not validResponse(response.status_code):
+                    time.sleep(10)
+                    print(dncApiKeys)
+                    print(dncApiKey)
+                    try:
+                        dncApiKeys.remove(dncApiKey)
+                    except:
+                        try:
+                            dncApiKeys.remove(curIndex)
+                        except:
+                            print("That fucked up")
+                            return "This fucked up"
+                    print("Removed Key " + dncApiKey + ". " + str(len(dncApiKeys))+" keys left")
+                    continue
+#                    return "Did not finish. Please Rerun"
+                data = response.json()
+                response.close()
+                data = cleanJson(data)
+                output = open(currentDir + "/" + str(offsetCount) + "-" + str(offsetCount + 50) + ".json", "w")
+                json.dump(data, output)
+                output.flush()
+                output.close()
+                offsetCount += 50
+            print("Finished with " + splits[0])
+        return "Awesome. It actually finished"
 
 def FullDayData():
     f = open("DncApiKey.txt" , "r")
-    lines = f.readlines()
-    for line in lines:
-        print("Using Key "+ line.strip())
-        print(richer(line.strip()))
+    lisp = f.readlines()
+    lines= []
+    for line in lisp:
+        lines.append(line.strip())
+    for i in range(0, 10):
+        lx = lines
+        richer(lx) #Is deleting permentantly so loop is useless.
         time.sleep(5)
     return "Done"
 
@@ -311,7 +342,7 @@ def crushDatabase():
             continue # It is a file so ignore
 
 
-def cleanDatabase():
+def dupCleanDatabase():
     # Clean up Read File of duplicates
     f = open("Done/toRead.txt", "r")
     lines = f.readlines()
@@ -322,39 +353,72 @@ def cleanDatabase():
     mySet = set([]) # Get rid of duplicates
     for line in lines:
         mySet.add(line)
-    # Write cleaned Readme
-    f2 = open("Done/toRead.txt", "w")
-    for s in mySet:
-        f2.write(s)
-    f2.flush()
-    f2.close()
+    
     # Get rid of finished folders
     doneJson = os.listdir("Done")
     print(doneJson)
     input()
     for file in doneJson:
+        print(file)
         if ".json" in file:
             dateString = file.replace(".json","")
+            print(dateString)
             if os.path.exists("Base/" + file):
                 send2trash.send2trash("Base/" + file)
             if os.path.exists("Base/" + dateString):
                 send2trash.send2trash("Base/" + dateString)
         else: # Not a json file. Ignore
+            print("That doesn't work")
             continue
-    sz = os.path.getsize("Done/2021-02-28.json")
 
+    myNewList = donCleanDatabase(mySet)
+    # Write cleaned Readme
+    f2 = open("Done/toRead.txt", "w")
+    for s in myNewList:
+        f2.write(s)
+    f2.flush()
+    f2.close()
+
+
+
+def donCleanDatabase(mySet): # Removing the done in toReadFile
+    createFolder("Done/Completed")
+    oq = os.listdir("Done/")
+    removeList = []
+    lines = []
+    for m in mySet:
+        lines.append(m)
+    for i in oq:
+        if "json" not in i: # Remove non Json Files
+            oq.remove(i)
+        else:
+            os.rename("Done/" + i, "Done/Completed/" + i)
+            print("File: " + i + " is done")
+            removeList.append(i.replace(".json",""))
+            
+    for a in removeList:
+        for line in lines:
+            if a == line.split(" ")[0]:
+                lines.remove(line)
+                print("Removed: "+ a)
+    return lines
 
 def main():
-    print("Here is what we can do")
-    print("1. Create a database")
-    print("2. Update Database")
-    print("3. More data in database")
-    print("4. Clean Database")
-    print("5. Crush Database")
-    print("6. Quit")
+    print("Welcome to the Do Not Call Database Builder")
     running = True
     while running:
-        selection = int(input("What are we doing: "))
+        print("Here is what we can do")
+        print("1. Create a database")
+        print("2. Update Database")
+        print("3. More data in database")
+        print("4. Clean Database")
+        print("5. Crush Database")
+        print("6. Quit")
+        selection = 7
+        try:
+            selection = int(input("What are we doing: "))
+        except:
+            print("That doesn't seem to be an int")
         if selection == 1:
             print(initalizeDatabase())
             print("Creating the database")
@@ -365,13 +429,13 @@ def main():
                 print(updateDatabase(line.strip()))
             print("Updating the database")
         elif selection == 3:
+            print("Adding more data")
             print(FullDayData())
-            print("adding more data")
         elif selection == 4:
             print("Cleaning Database")
-            cleanDatabase()
+            dupCleanDatabase() # Duplicates in toRead file
         elif selection == 5:
-            crushingDatabase()
+            crushDatabase()
             print("Crushing Database")
         elif selection == 6:
             print("Quitting")
