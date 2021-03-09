@@ -16,7 +16,7 @@ baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
 
 def validResponse(statusCode):
     if (statusCode == 200):
-        time.sleep(.45) # So we don't overrequest from the system
+#        time.sleep(.65) # So we don't overrequest from the system
         return True
     elif (statusCode == 429):
         print("Rate has been exceeded")
@@ -253,9 +253,9 @@ def richer(dncApiKeys):
                 dncApiKey = dncApiKeys[curIndex].strip()
                 count += 1
                 response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
-                time.sleep(.85)
+                time.sleep(1)
                 if not validResponse(response.status_code):
-                    time.sleep(10)
+                    time.sleep(240)
                     print(dncApiKeys)
                     print(dncApiKey)
                     try:
@@ -289,7 +289,7 @@ def FullDayData():
     for i in range(0, 10):
         lx = lines
         richer(lx) #Is deleting permentantly so loop is useless.
-        time.sleep(5)
+        time.sleep(60)
     return "Done"
 
 def clean(phoneNumber):
@@ -417,6 +417,7 @@ def main():
         selection = 7
         try:
             selection = int(input("What are we doing: "))
+#            time.sleep(600)
         except:
             print("That doesn't seem to be an int")
         if selection == 1:
