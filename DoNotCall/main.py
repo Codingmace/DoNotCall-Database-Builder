@@ -253,7 +253,7 @@ def richer(dncApiKeys):
                 dncApiKey = dncApiKeys[curIndex].strip()
                 count += 1
                 response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
-                time.sleep(1)
+                #time.sleep(1)
                 if not validResponse(response.status_code):
                     time.sleep(240)
                     print(dncApiKeys)
@@ -289,7 +289,7 @@ def FullDayData():
     for i in range(0, 10):
         lx = lines
         richer(lx) #Is deleting permentantly so loop is useless.
-        time.sleep(60)
+#        time.sleep(60)
     return "Done"
 
 def clean(phoneNumber):
