@@ -1,0 +1,3 @@
+[03/10/2021, 08:44:56] Selection: Enrich Database
+[03/10/2021, 08:45:08] Selection: Exit
+[03/10/2021, 10:55:28] Selection: Enrich Database

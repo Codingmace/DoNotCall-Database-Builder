@@ -10,13 +10,21 @@ import send2trash
 # Update richer for multiple keys
 # Could have an issue with removing the folders. check back in a little.
 # Need to move it to the Log for printouts
+# Add timeout for the request because it is taking too long sometimes
 
 # Consistant Variables
 baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
+fileLog = open("log.txt", "a")
+
+def getDay(): # Gets dateTime Y,M,D
+    return datetime.today().strftime("%Y-%m-%d")
+
+def getTimeNow(): # Gets DateTime Without msec
+    return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
 def validResponse(statusCode):
     if (statusCode == 200):
-#        time.sleep(.65) # So we don't overrequest from the system
+        time.sleep(.65) # So we don't overrequest from the system
         return True
     elif (statusCode == 429):
         print("Rate has been exceeded")
@@ -26,6 +34,19 @@ def validResponse(statusCode):
         print("Api key missing or invalid")
     elif (statusCode == 400):
         print("URL Does not use HTTPS:")
+    return False
+
+def getResponseMessage(statusCode):
+    if (statusCode == 200):
+        return "Good"
+    elif (statusCode == 429):
+        return "Rate has been exceeded"
+    elif (statusCode == 404):
+        return "API server cannot be reached"
+    elif (statusCode == 403):
+        return "Api key missing or invalid"
+    elif (statusCode == 400):
+        return "URL Does not use HTTPS:"
     return False
 
 def dateOffset(date1, date2): # Just year-month-day
@@ -61,7 +82,7 @@ def createDatabase(dncApiKey, offset):
     print("We are grabbing the days all the way back to February 14, 2020")
     currentDay = datetime.today()
     curDay = open("Done/lastDate.txt", "w") # Last date updated
-    curDay.write(currentDay.strftime("%Y-%m-%d"))
+    curDay.write(getDay())
     curDay.flush()
     curDay.close()
     moreDays = True
@@ -137,7 +158,7 @@ def initalizeDatabase():
 
 def updateDatabase(dncApiKey):
 #    baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
-    todayDate = datetime.today().strftime("%Y-%m-%d")
+    todayDate = getDay()
     offset =0
     if os.path.exists("Done/lastDate.txt"):
         lastDate = open("Done/lastDate.txt", "r") # last update day
@@ -146,13 +167,13 @@ def updateDatabase(dncApiKey):
         offset = dateOffset(endDate , todayDate)
 
     else:
-        fileLog = open("log.txt", "a")
-        timeNow = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-        fileLog.write(timeNow + " That File does not exists")
-        fileLog.write("Solution:\nGo to the Done folder and create a file named lastDate.txt")
+#        fileLog = open("log.txt", "a")
+        timeNow = getTimeNow()
+        fileLog.write("[" + timeNow + "] That File does not exists")
+        fileLog.write("Solution: Go to the Done folder and create a file named lastDate.txt")
         fileLog.write("In that file put the last update in Year-Month-Day format")
         fileLog.flush()
-        fileLog.close()
+        fileLog.close() # Need to change this later
         f = open("Done/lastDate.txt", "w")
         f.write(todayDate)
         f.flush()
@@ -174,6 +195,8 @@ def updateDatabase(dncApiKey):
         response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + form + "\"")
         if not validResponse(response.status_code):
             subDays.close()
+            fileLog.write("[" + getTimeNow() + "] Response: " + getResponseMessage(response.status_code) +"\n")
+            fileLog.flush()
             print("Exiting at " + form)
 #            ("Add to the log file information about where left off
             return "Please check Log File for more detail" # If done
@@ -223,11 +246,13 @@ def maximum(fileList):
 def richer(dncApiKeys):
     count= 0
     while len(dncApiKeys) > 0:
-        print("Does the enrichment of the data")
+#        print("Does the enrichment of the data")
         baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
         subDays = open("Done/toRead.txt", "r") # For the sub parts
         lines = subDays.readlines()
         currentDir = "Base/"
+        if len(lines) == 0:
+            return "No new dates found. I suggest running Update"
         # Check if the folder exists. Maybe rewrite the file. For now ignoring it
         for line in lines:
             # Check to see if file already exist so I don't waste time
@@ -255,17 +280,13 @@ def richer(dncApiKeys):
                 response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
                 #time.sleep(1)
                 if not validResponse(response.status_code):
-                    time.sleep(240)
+                    #time.sleep(240)
                     print(dncApiKeys)
                     print(dncApiKey)
                     try:
                         dncApiKeys.remove(dncApiKey)
                     except:
-                        try:
-                            dncApiKeys.remove(curIndex)
-                        except:
-                            print("That fucked up")
-                            return "This fucked up"
+                        print("Something went wrong")
                     print("Removed Key " + dncApiKey + ". " + str(len(dncApiKeys))+" keys left")
                     continue
 #                    return "Did not finish. Please Rerun"
@@ -289,7 +310,7 @@ def FullDayData():
     for i in range(0, 10):
         lx = lines
         richer(lx) #Is deleting permentantly so loop is useless.
-#        time.sleep(60)
+        #time.sleep(60)
     return "Done"
 
 def clean(phoneNumber):
@@ -357,7 +378,7 @@ def dupCleanDatabase():
     # Get rid of finished folders
     doneJson = os.listdir("Done")
     print(doneJson)
-    input()
+#    input()
     for file in doneJson:
         print(file)
         if ".json" in file:
@@ -417,31 +438,47 @@ def main():
         selection = 7
         try:
             selection = int(input("What are we doing: "))
-#            time.sleep(600)
+           # time.sleep(600)
         except:
             print("That doesn't seem to be an int")
         if selection == 1:
-            print(initalizeDatabase())
             print("Creating the database")
+            fileLog.write("[" + getTimeNow()+"] Selection: Create Database\n")
+            fileLog.flush()
+            print(initalizeDatabase())
         elif selection == 2:
+            print("Updating the database")
+            fileLog.write("[" + getTimeNow() + "] Selection: Update Database\n")
+            fileLog.flush()
             f = open("DncApiKey.txt" , "r")
             lines = f.readlines()
+            f.close()
             for line in lines:
                 print(updateDatabase(line.strip()))
-            print("Updating the database")
         elif selection == 3:
             print("Adding more data")
+            fileLog.write("[" + getTimeNow() + "] Selection: Enrich Database\n")
+            fileLog.flush()
             print(FullDayData())
         elif selection == 4:
             print("Cleaning Database")
+            fileLog.write("[" + getTimeNow() + "] Selection: Clean Database\n")
+            fileLog.flush()
             dupCleanDatabase() # Duplicates in toRead file
         elif selection == 5:
-            crushDatabase()
             print("Crushing Database")
+            fileLog.write("[" + getTimeNow() + "] Selection: Update Database\n")
+            fileLog.flush()
+            crushDatabase()
         elif selection == 6:
             print("Quitting")
+            fileLog.write("[" + getTimeNow() + "] Selection: Exit\n")
+            fileLog.flush()
+            fileLog.close()
             running = False
         else:
+            fileLog.write("[" + getTimeNow() + "] Selection: Invalid\n")
+            fileLog.flush()
             print("That is not an option")
 
 
