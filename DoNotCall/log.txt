@@ -28,3 +28,6 @@
 [03/11/2021, 15:16:04] Selection: Exit
 [03/11/2021, 15:17:44] Selection: Enrich Database
 [03/11/2021, 15:21:08] Selection: Exit
+[03/11/2021, 16:15:01] Selection: Update Database
+[03/11/2021, 16:39:13] Selection: Clean Database
+[03/11/2021, 16:59:08] Selection: Exit

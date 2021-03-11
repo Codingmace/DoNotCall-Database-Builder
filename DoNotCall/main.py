@@ -248,7 +248,7 @@ def maximum(fileList):
     return max(numbers)
 
 def richer(dncApiKeys):
-    count= 0
+    count = 0
     while len(dncApiKeys) > 0:
 #        print("Does the enrichment of the data")
         baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
