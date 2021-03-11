@@ -1,3 +1,30 @@
 [03/10/2021, 08:44:56] Selection: Enrich Database
 [03/10/2021, 08:45:08] Selection: Exit
 [03/10/2021, 10:55:28] Selection: Enrich Database
+[03/10/2021, 11:34:03] Selection: Update Database
+[03/10/2021, 11:34:15] Selection: Clean Database
+[03/10/2021, 11:35:45] Selection: Clean Database
+[03/10/2021, 11:36:27] Selection: Clean Database
+[03/10/2021, 11:36:55] Selection: Clean Database
+[03/10/2021, 11:37:52] Selection: Clean Database
+[03/10/2021, 11:38:09] Selection: Exit
+[03/10/2021, 11:40:32] Selection: Enrich Database
+[03/10/2021, 12:21:33] Selection: Enrich Database
+[03/10/2021, 13:00:16] Selection: Enrich Database
+[03/10/2021, 14:15:44] Selection: Enrich Database
+[03/10/2021, 15:38:48] Selection: Enrich Database
+[03/10/2021, 15:49:40] Selection: Enrich Database
+[03/10/2021, 16:42:36] Selection: Enrich Database
+[03/10/2021, 16:45:26] Selection: Update Database
+[03/10/2021, 16:47:49] Selection: Clean Database
+[03/10/2021, 16:47:56] Selection: Exit
+[03/10/2021, 17:52:24] Selection: Enrich Database
+[03/10/2021, 17:54:33] Selection: Enrich Database
+[03/11/2021, 11:01:25] Selection: Enrich Database
+[03/11/2021, 11:08:17] Selection: Enrich Database
+[03/11/2021, 11:21:18] Selection: Enrich Database
+[03/11/2021, 11:54:17] Selection: Enrich Database
+[03/11/2021, 11:54:41] Selection: Exit
+[03/11/2021, 15:16:04] Selection: Exit
+[03/11/2021, 15:17:44] Selection: Enrich Database
+[03/11/2021, 15:21:08] Selection: Exit

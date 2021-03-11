@@ -15,6 +15,10 @@ import send2trash
 # Consistant Variables
 baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
 fileLog = open("log.txt", "a")
+waitBetweenRequest = False
+waitBetweenFail = False
+waitBeforeStart = False
+waitBetweenResponse = False
 
 def getDay(): # Gets dateTime Y,M,D
     return datetime.today().strftime("%Y-%m-%d")
@@ -24,7 +28,8 @@ def getTimeNow(): # Gets DateTime Without msec
 
 def validResponse(statusCode):
     if (statusCode == 200):
-        time.sleep(.65) # So we don't overrequest from the system
+        if waitBetweenResponse:
+            time.sleep(.85) # Don't over request system
         return True
     elif (statusCode == 429):
         print("Rate has been exceeded")
@@ -77,7 +82,6 @@ def createFolder(folderpath):
         os.makedirs(folderpath)
 
 def createDatabase(dncApiKey, offset):
-#    baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
     createFolder("Done")
     print("We are grabbing the days all the way back to February 14, 2020")
     currentDay = datetime.today()
@@ -159,7 +163,7 @@ def initalizeDatabase():
 def updateDatabase(dncApiKey):
 #    baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
     todayDate = getDay()
-    offset =0
+    offset = 0
     if os.path.exists("Done/lastDate.txt"):
         lastDate = open("Done/lastDate.txt", "r") # last update day
         endDate = lastDate.readline().strip()
@@ -278,9 +282,12 @@ def richer(dncApiKeys):
                 dncApiKey = dncApiKeys[curIndex].strip()
                 count += 1
                 response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
+                if waitBetweenRequest:
+                    time.sleep(1)
                 #time.sleep(1)
                 if not validResponse(response.status_code):
-                    #time.sleep(240)
+                    if waitBetweenFail:
+                        time.sleep(120)
                     print(dncApiKeys)
                     print(dncApiKey)
                     try:
@@ -307,10 +314,8 @@ def FullDayData():
     lines= []
     for line in lisp:
         lines.append(line.strip())
-    for i in range(0, 10):
-        lx = lines
-        richer(lx) #Is deleting permentantly so loop is useless.
-        #time.sleep(60)
+    lx = lines
+    richer(lx) #Is deleting permentantly so loop is useless.
     return "Done"
 
 def clean(phoneNumber):
@@ -435,10 +440,11 @@ def main():
         print("4. Clean Database")
         print("5. Crush Database")
         print("6. Quit")
-        selection = 7
+        selection = 3
         try:
+            if waitBeforeStart:
+                time.sleep(600)
             selection = int(input("What are we doing: "))
-           # time.sleep(600)
         except:
             print("That doesn't seem to be an int")
         if selection == 1:
