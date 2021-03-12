@@ -7,10 +7,11 @@ import send2trash
 
 # A connection error occured, Add a validator for input
 # Need to check that the folders are complete before crushing them
-# Update richer for multiple keys
 # Could have an issue with removing the folders. check back in a little.
 # Need to move it to the Log for printouts
 # Add timeout for the request because it is taking too long sometimes
+# Missed all the dates in the missed.zip file when creating the database. Also not sure if it was in the toRead File
+
 
 # Consistant Variables
 baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
@@ -79,11 +80,13 @@ def createFolder(folderpath):
     if os.path.exists(folderpath):
         print(folderpath + " already Exists")
     else:
+        fileLog.write("[" + getTimeNow() + "] Creating Dir: " + folderpath + "\n")
+        fileLog.flush()
         os.makedirs(folderpath)
 
 def createDatabase(dncApiKey, offset):
     createFolder("Done")
-    print("We are grabbing the days all the way back to February 14, 2020")
+#    print("We are grabbing the days all the way back to February 14, 2020")
     currentDay = datetime.today()
     curDay = open("Done/lastDate.txt", "w") # Last date updated
     curDay.write(getDay())
@@ -94,11 +97,12 @@ def createDatabase(dncApiKey, offset):
     while moreDays:
         d = currentDay - timedelta(days=offset)
         form = d.strftime("%Y-%m-%d")
-        print(form)
         if os.path.exists(str("Base\\" + form+".json")):
             print(form + " already exists")
             offset += 1
             continue # Don't want to recall a file that already exists
+        fileLog.write("[" + getTimeNow() + "] Creating Day: " + form + "\n")
+        fileLog.flush()
         response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + form + "\"")
         print(response.text)
         if form == "2020-02-14":
@@ -109,15 +113,16 @@ def createDatabase(dncApiKey, offset):
             continue
         if not validResponse(response.status_code):
             subDays.close()
-            print("Exiting at " + form)
+            fileLog.write("[" + getTimeNow() + "] Quitting at: " + form + "\n")
+            fileLog.flush()
             return offset # If done
-        # Got successful information
-        data = response.json()
+        data = response.json() # Got successful information
         response.close()
         offset += 1
         recordCount = data['meta']['record-total']
         if recordCount == 0:
-            print("The day " + form + " is invalid but still recorded.")
+            fileLog.write("[" + getTimeNow() + "] Invalid Day: " + form + "\n")
+            fileLog.flush()
             continue
         output = open(str("Base\\" +form +".json"), "w")
         leftOver = int(recordCount) % 50
@@ -156,22 +161,18 @@ def initalizeDatabase():
             offset += 1
         else:
             return "The Basic database has been successfully created"
-        # Probably wait a little time and write where stopped
-#        input("Press any key to exit: ")
     return "Their was an issue and I couldn't finish"
 
 def updateDatabase(dncApiKey):
-#    baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
     todayDate = getDay()
     offset = 0
     if os.path.exists("Done/lastDate.txt"):
         lastDate = open("Done/lastDate.txt", "r") # last update day
         endDate = lastDate.readline().strip()
-        print("The last day the database was updated was " + endDate)
+        fileLog.write("[" + getTimeNow() + "] Starting Date: " + endDate + "\n")
+        fileLog.flush()
         offset = dateOffset(endDate , todayDate)
-
     else:
-#        fileLog = open("log.txt", "a")
         timeNow = getTimeNow()
         fileLog.write("[" + timeNow + "] That File does not exists")
         fileLog.write("Solution: Go to the Done folder and create a file named lastDate.txt")
@@ -188,6 +189,7 @@ def updateDatabase(dncApiKey):
     subDays = open("Done/toRead.txt", "a") # For the sub parts
     
     while moreDays:
+        print(offset)
         d = datetime.today() - timedelta(days=offset)
         form = d.strftime("%Y-%m-%d")
         if os.path.exists(str("Base\\" + form+".json")):
@@ -201,8 +203,8 @@ def updateDatabase(dncApiKey):
             subDays.close()
             fileLog.write("[" + getTimeNow() + "] Response: " + getResponseMessage(response.status_code) +"\n")
             fileLog.flush()
-            print("Exiting at " + form)
-#            ("Add to the log file information about where left off
+            fileLog.write("[" + getTimeNow() + "] Exiting at: " + form + "\n")
+            fileLog.flush()
             return "Please check Log File for more detail" # If done
 
         # Got successful information
@@ -211,7 +213,8 @@ def updateDatabase(dncApiKey):
         offset -= 1
         recordCount = data['meta']['record-total']
         if recordCount == 0:
-            print("the day is invalid but still recorded. Skip")
+            fileLog.write("[" + getTimeNow() + "] Invalid Day: " + form + "\n")
+            fileLog.flush()
             continue
         output = open(str("Base\\" +form +".json"), "w")
         leftOver = int(recordCount) % 50
@@ -229,8 +232,9 @@ def updateDatabase(dncApiKey):
     curDay = open("Done/lastDate.txt", "w") # Last date updated
     curDay.write(todayDate)
     curDay.close()
-
-    print("Rewritting the lastDate file as we are up to date")
+    fileLog.write("[" + getTimeNow() + "] Updating Last Date: " + todayDate + "\n")
+    fileLog.write("[" + getTimeNow() + "] Finish Update\n")
+    fileLog.flush()
     return "I have made it to the end."
 
 
@@ -243,20 +247,22 @@ def maximum(fileList):
             name = name.replace(".json", "").split("-")[1]
             numbers.append(int(name))
         else:
+            fileLog.write("[" + getTimeNow() + "] Problem File: " + name + "\n")
             print("We have a problem with file " + name)
-            input()
     return max(numbers)
 
 def richer(dncApiKeys):
     count = 0
     while len(dncApiKeys) > 0:
-#        print("Does the enrichment of the data")
-        baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
         subDays = open("Done/toRead.txt", "r") # For the sub parts
         lines = subDays.readlines()
+        print(len(lines))
         currentDir = "Base/"
         if len(lines) == 0:
-            return "No new dates found. I suggest running Update"
+            fileLog.write("[" + getTimeNow() + "] No Update Done\n")
+            fileLog.flush()
+            return "No new Dates"
+#            return "No new dates found. I suggest running Update"
         # Check if the folder exists. Maybe rewrite the file. For now ignoring it
         for line in lines:
             # Check to see if file already exist so I don't waste time
@@ -265,14 +271,16 @@ def richer(dncApiKeys):
             currentDir = "Base/" + splits[0]
             if os.path.exists(currentDir): # Check if everything there
                 if os.path.exists(currentDir + "/" + splits[1] +".json"): # Last file exists
-                    print("Skip this folder because it is already done")
+                    fileLog.write("[" + getTimeNow() + "] Skipping Done: " + splits[1] + "\n")
+                    fileLog.flush()
                     continue
                 else: # Continue where left off
-                    print("Continue at the biggest number file in that folder")
+                    fileLog.write("[" + getTimeNow() + "] Continue Day: " + splits[0] + "\n")
                     subFiles = os.listdir(currentDir)
                     offsetCount = maximum(subFiles)
             else:
-                print("It doesn't exist so creating it myself")
+                fileLog.write("[" + getTimeNow() + "] Creating Folder: " + currentDir + "\n")
+                fileLog.flush()
                 os.makedirs(currentDir)
             lastEntry = int(splits[1])
             while (offsetCount < lastEntry):
@@ -284,7 +292,6 @@ def richer(dncApiKeys):
                 response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
                 if waitBetweenRequest:
                     time.sleep(1)
-                #time.sleep(1)
                 if not validResponse(response.status_code):
                     if waitBetweenFail:
                         time.sleep(120)
@@ -293,10 +300,11 @@ def richer(dncApiKeys):
                     try:
                         dncApiKeys.remove(dncApiKey)
                     except:
-                        print("Something went wrong")
-                    print("Removed Key " + dncApiKey + ". " + str(len(dncApiKeys))+" keys left")
+                        fileLog.write("[" + getTimeNow() + "] Something Went Wrong\n")
+                    fileLog.write("[" + getTimeNow() + "] Removed Key: " + dncApiKey + "\n")
+                    fileLog.write("[" + getTimeNow() + "] Keys Left: " + str(len(dncApiKeys)) + "\n")
+                    fileLog.flush()
                     continue
-#                    return "Did not finish. Please Rerun"
                 data = response.json()
                 response.close()
                 data = cleanJson(data)
@@ -305,7 +313,8 @@ def richer(dncApiKeys):
                 output.flush()
                 output.close()
                 offsetCount += 50
-            print("Finished with " + splits[0])
+            fileLog.write("[" + getTimeNow() + "] Finished With: " + splits[0] + "\n")
+            fileLog.flush()
         return "Awesome. It actually finished"
 
 def FullDayData():
@@ -343,7 +352,6 @@ def crusher(foldername):
                 for x in developer['data']:
                     number = clean(x['number'])
                     if number == "too short" or number == "too long":
-                        print(x)
                         continue
                     elif number == "area missing":
                         x['number'] = x['area-code'] + number
@@ -355,13 +363,14 @@ def crusher(foldername):
     # Turning dict to file
     with open("Done/" + foldername + ".json", 'w') as fp:
         json.dump(dex,fp)
-    
+    fileLog.write("[" + getTimeNow() + "] Merged: " + foldername + "\n")
+    fileLog.flush()
+                    
     return "Successfully merged the file"
 
 def crushDatabase():
     folders = os.listdir("Base/") # For extra verification we can verify all entries are there.
     for foldname in folders:
-#        print(foldname)
         if os.path.isdir("Base/" + foldname):
             crusher(foldname)
         else:
@@ -382,19 +391,16 @@ def dupCleanDatabase():
     
     # Get rid of finished folders
     doneJson = os.listdir("Done")
-    print(doneJson)
-#    input()
     for file in doneJson:
-        print(file)
+        fileLog.write("[" + getTimeNow() + "] Removing: " + file + "\n")
+        fileLog.flush()
         if ".json" in file:
             dateString = file.replace(".json","")
-            print(dateString)
             if os.path.exists("Base/" + file):
                 send2trash.send2trash("Base/" + file)
             if os.path.exists("Base/" + dateString):
                 send2trash.send2trash("Base/" + dateString)
         else: # Not a json file. Ignore
-            print("That doesn't work")
             continue
 
     myNewList = donCleanDatabase(mySet)
@@ -404,7 +410,6 @@ def dupCleanDatabase():
         f2.write(s)
     f2.flush()
     f2.close()
-
 
 
 def donCleanDatabase(mySet): # Removing the done in toReadFile
@@ -419,14 +424,16 @@ def donCleanDatabase(mySet): # Removing the done in toReadFile
             oq.remove(i)
         else:
             os.rename("Done/" + i, "Done/Completed/" + i)
-            print("File: " + i + " is done")
+            fileLog.write("[" + getTimeNow() + "] Done: " + i + "\n")
+            fileLog.flush()        
             removeList.append(i.replace(".json",""))
             
     for a in removeList:
         for line in lines:
             if a == line.split(" ")[0]:
                 lines.remove(line)
-                print("Removed: "+ a)
+                fileLog.write("[" + getTimeNow() + "] Removed: " + a + "\n")
+                fileLog.flush()
     return lines
 
 def main():
@@ -457,10 +464,9 @@ def main():
             fileLog.write("[" + getTimeNow() + "] Selection: Update Database\n")
             fileLog.flush()
             f = open("DncApiKey.txt" , "r")
-            lines = f.readlines()
+            line = f.readline() # only read one key
             f.close()
-            for line in lines:
-                print(updateDatabase(line.strip()))
+            print(updateDatabase(line.strip()))
         elif selection == 3:
             print("Adding more data")
             fileLog.write("[" + getTimeNow() + "] Selection: Enrich Database\n")
