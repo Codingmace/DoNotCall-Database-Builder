@@ -21,6 +21,26 @@ waitBetweenFail = False
 waitBeforeStart = False
 waitBetweenResponse = False
 
+
+
+class Node:
+    def __init__(self, value, nextNode=None):
+        self.id = value['id']
+        self.numb = value['number']
+        self.area = value['area-code']
+        self.good = value['number'][0:3] == value['area-code']
+        self.nextNode = nextNode
+
+    def getId(self):
+        return self.id
+
+    def getNumb(self):
+        return self.numb
+
+    def getArea(self):
+        return self.area
+
+
 def getDay(): # Gets dateTime Y,M,D
     return datetime.today().strftime("%Y-%m-%d")
 
@@ -436,6 +456,39 @@ def donCleanDatabase(mySet): # Removing the done in toReadFile
                 fileLog.flush()
     return lines
 
+def rebase():
+    baseDir = "Done/Completed/"
+    mergeFiles = os.listdir(baseDir)
+    goodNumbers = [] # Good number dict
+    badNumbers = [] # Bad number dict
+    goodNumb = [] # Same area code
+    badNumb = [] # Different Area Code
+    for fi in mergeFiles: # Load Numbers
+        try:
+            with open(baseDir + fi, "r") as read_file:
+                developer = json.load(read_file)
+                for x in developer:
+                    n = Node(x)
+                   # print("this")
+                    if n.good:
+                        goodNumbers.append(x) # Technically can delete area-code
+                        goodNumb.append(n)
+                    else:
+                        badNumbers.append(x)
+                        badNumb.append(n)
+        except:
+            fileLog.write("[" + getTimeNow() + "] File Issue: " + fi + "\n")
+            fileLog.flush()
+    # Go through the numbers and sort
+    print(str(len(goodNumb)))
+    print(str(len(badNumb)))
+    # Turning dict to file
+    with open('badNumbers.json', 'w') as fp:
+        json.dump(badNumbers, fp)
+
+    with open('goodNumbers.json', 'w') as fp:
+        json.dump(goodNumbers, fp)
+
 def main():
     print("Welcome to the Do Not Call Database Builder")
     running = True
@@ -446,7 +499,8 @@ def main():
         print("3. More data in database")
         print("4. Clean Database")
         print("5. Crush Database")
-        print("6. Quit")
+        print("6. Mega Good-Bad Build")
+        print("7. Quit")
         selection = 3
         try:
             if waitBeforeStart:
@@ -483,6 +537,11 @@ def main():
             fileLog.flush()
             crushDatabase()
         elif selection == 6:
+            print("Merging all done files")
+            fileLog.write("[" + getTimeNow() + "] Selection: Mega Crush")
+            fileLog.flush()
+            rebase()
+        elif selection == 7:
             print("Quitting")
             fileLog.write("[" + getTimeNow() + "] Selection: Exit\n")
             fileLog.flush()
