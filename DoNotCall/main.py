@@ -144,7 +144,7 @@ def createDatabase(dncApiKey, offset):
             fileLog.write("[" + getTimeNow() + "] Invalid Day: " + form + "\n")
             fileLog.flush()
             continue
-        output = open(str("Base\\" +form +".json"), "w")
+        output = open(str("Base\\" + form +".json"), "w")
         leftOver = int(recordCount) % 50
         recordCount += 50 - leftOver # To accomidate for the left over ones
         subDays.write(form + " " + str(recordCount) + "\n")
