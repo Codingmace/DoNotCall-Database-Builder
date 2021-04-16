@@ -1,5 +1,5 @@
 # Get all the information on the database about a phone number.
-import json
+# import json
 import os
 # Improvement
 # Sort numbers before search (Quick already)
@@ -10,25 +10,13 @@ def searchNumber():
     phoneNumber = "000-000-0000"
     done = False
     allNumbers = []
-    filename = "result.json"
-#    searchAll = input("Would you like to search bad Database (Y/N)? ")
-    searchAll= "Y"
-    if searchAll == "Y" or searchAll == "y":
-        print("Ok loading up all numbers")
-    elif searchAll == "N" or searchAll == "n":
-        print("Ok just good numbers. Awesome")
-        filename = "goodNumbers.json"
-    else:
-        print("That is not valid. I guess I will do everything")
+    filename = "compare.csv"
+    searchAll= "Y" # Including bad numbers; Implement later on
 
     if os.path.exists(filename):
         print("Reading in " + filename)
     else:
-        print("That file doesn't work. Verifying files")
-        if os.path.exists("result.json"):
-            print("combine file exists")
-        else:
-            print("combine file doesn't exists")
+        print("That file doesn't exist. Check and run the function again")
         if os.path.exists("goodNumbers.json"):
             print("good file exists")
         else:
@@ -39,22 +27,35 @@ def searchNumber():
             print("bad files doesn't exists")
         if os.path.exists("goodNumbers.json") and os.path.exists("badNumbers.json"):
             print("Combining files to hopefully solve the issue")
-            # Here combine the files
-            # For now making it just good file because I am lazy and want to test it.
-            filename = "goodNumbers.json"
-
-    try:
-        with open(filename, "r") as read_file:
-            developer = json.load(read_file)
-            for x in developer:
-                allNumbers.append(x)
-    except:
-        print("the file is having an issue ")
-
-    print("Loaded ", str(len(allNumbers)) + " entries")
+            # Call prep database here
+    listNumbers = []
+    dupCount = 0
+    with open(filename , "r") as read_file:
+        lines = read_file.readlines()
+        lines.remove(lines[0]) # Remove the header
+        for line in lines:
+            splits = line.strip().split(",")
+            listNumbers.append(line)
+            allNumbers.append(splits)
+#            if(splits[0] == "7179833229"):
+#                print(line)
+#            if splits[2] == "717":
+#                if line not in listNumbers:
+#                    listNumbers.append(line)
+#                    allNumbers.append(splits)
+#                    if len(listNumbers) % 1000 == 0:
+#                        print("Lengthe of list" ,  len(listNumbers))
+#                else:
+#                    dupCount += 1
+#                    print("Dup", dupCount,"listSize", len(listNumbers))
+            
+    print("Loaded ", str(len(listNumbers)) + " entries")
+    print("Duplicate Count", str(dupCount))
     
     while (not done):
-        phoneNumber = input("Enter Phone Number (q to quit, h for help): ")
+        phoneNumber = "000-000-0000"
+        done = True
+#        phoneNumber = input("Enter Phone Number (q to quit, h for help): ")
         phoneNumber = phoneNumber.replace("+", "").replace("-","").replace("(","").replace(")","")
         if phoneNumber == "q":
             print("Ok now we quit")
@@ -62,26 +63,36 @@ def searchNumber():
             continue
         elif phoneNumber == "h":
             print("Here would go help but I have not done it yet")
+            print("Well you enter a number and it will search for it.")
+            print("If one is found then it will ask to display the records.")
+            print("If not then it is not found for 2 reasons.")
+            print("1. It is not spam or been reported as spam")
+            print("2. The database is outdated.")
             continue
         if len(phoneNumber) == 10:
             print("That is a valid phone number. Searching for it now")
             idList = []
             for e in allNumbers:
-#                print(e)
-                if e['number'] == phoneNumber:
-                    idList.append(e)
-                
-            print("Found " + str(len(idList)) + " entries for the number "+ phoneNumber)
+                if e[0] == phoneNumber:
+                    if e[1] in idList: # Faster to find duplicates here
+                        print("Shit something went wrong")
+                    else:
+                        idList.append(e[1])
+
+# Verify for duplicates here
+            if len(idList) == 0:
+                print("The number " + phoneNumber + " had no results found")
+                continue
             if len(idList) > 0:
+                print("Found " + str(len(idList)) + " entries for the number "+ phoneNumber)
+                extendedInfo = "Y"
+                
                 extended = input("Would you like all the information (Y/N)? ")
                 if extended.lower() == "y":
-                    print("Ok printing out " + str(len(idList)) + " entries")
-    
-                    print("##############################")
-                    print("HERE I WOULD GET VALUE BASED ON ID")
-                    print("I HAVE NOT TESTED FULLY SO NOT IMPLEMENTED")
-                    print("####################################################\n")
-                
+                    for i in idList:
+                        print("Id 1: " + i)
+                        print("Write request here. Very easy")
+                        print("Print out the request")
                 elif extended.lower() == "n":
                     print("Ok I think my work here is done then")
                 else:

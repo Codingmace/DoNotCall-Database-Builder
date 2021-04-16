@@ -5,10 +5,10 @@ from datetime import datetime, timedelta, date
 import time
 import send2trash
 
+
 # A connection error occured, Add a validator for input
 # Need to check that the folders are complete before crushing them
 # Could have an issue with removing the folders. check back in a little.
-# Need to move it to the Log for printouts
 # Add timeout for the request because it is taking too long sometimes
 # Missed all the dates in the missed.zip file when creating the database. Also not sure if it was in the toRead File
 
@@ -374,8 +374,8 @@ def crusher(foldername):
                     if number == "too short" or number == "too long":
                         continue
                     elif number == "area missing":
-                        x['number'] = x['area-code'] + number
-                    dex.append(x)
+                        number = x['area-code'] + x['number']
+                    dex.append(number)
                     
         except:
             return "Leaving the file alone because an issue occured"
@@ -459,11 +459,28 @@ def donCleanDatabase(mySet): # Removing the done in toReadFile
 def rebase():
     baseDir = "Done/Completed/"
     mergeFiles = os.listdir(baseDir)
+    actualFiles = ['goodNumbers.json', 'badNumbers.json']
     goodNumbers = [] # Good number dict
     badNumbers = [] # Bad number dict
     goodNumb = [] # Same area code
     badNumb = [] # Different Area Code
-    for fi in mergeFiles: # Load Numbers
+    for fi in actualFiles: # Load old Numbers
+        try:
+            with open(fi, "r") as read_file:
+                developer = json.load(read_file)
+                for x in developer:
+                    n = Node(x)
+                    if n.good:
+                        goodNumbers.append(x) # Technically can delete area-code
+                        goodNumb.append(n)
+                    else:
+                        badNumbers.append(x)
+                        badNumb.append(n)
+        except:
+            fileLog.write("[" + getTimeNow() + "] File Issue: " + fi + "\n")
+            fileLog.flush()
+
+    for fi in mergeFiles: # Load new Numbers
         try:
             with open(baseDir + fi, "r") as read_file:
                 developer = json.load(read_file)
@@ -479,28 +496,70 @@ def rebase():
         except:
             fileLog.write("[" + getTimeNow() + "] File Issue: " + fi + "\n")
             fileLog.flush()
-    # Go through the numbers and sort
+    # Go through the numbers and sort ####NNNNNEEEEEDSS TO BE DONE
     print(str(len(goodNumb)))
     print(str(len(badNumb)))
     # Turning dict to file
+    # Need to add the existing issue
     with open('badNumbers.json', 'w') as fp:
         json.dump(badNumbers, fp)
 
     with open('goodNumbers.json', 'w') as fp:
         json.dump(goodNumbers, fp)
+        
+def prepDatabase():
+    compsF = open("compare.csv", "w")
+    compsF.write("Number,Id,Area\n")
+    compsF.flush()
+    filename = "goodNumbers.json"
+    try:
+        with open(filename, "r") as read_file:
+            developer = json.load(read_file)
+            for x in developer:
+                newStr = x['number'] + "," + x['id'] + "," + x['area-code']
+                compsF.write(newStr + "\n")
+        filename = "badNumbers.json"
+        with open(filename, "r") as read_file:
+            developer = json.load(read_file)
+            for x in developer:
+                newStr = x['number'] + "," + x['id'] + "," + x['area-code']
+                compsF.write(newStr + "\n")
+
+    except:
+        print(filename + " is having an issue")
+        compsF.flush()
+    
+    compsF.close()
+
+def helpMenu():
+    print("1. Create a database")
+    print("2. Update the Database")
+    print("3. More data in the database")
+    print("4. Crush Database")
+    print("5. Clean Database")
+    print("6. Mega Good-Bad ReBase")
+    print("7. Prepare Searchable Database")
+    print("8. Search Number")
+
+
 
 def main():
     print("Welcome to the Do Not Call Database Builder")
     running = True
+    search = False
     while running:
         print("Here is what we can do")
+        print("0. Help MEEE.")
         print("1. Create a database")
-        print("2. Update Database")
-        print("3. More data in database")
-        print("4. Clean Database")
-        print("5. Crush Database")
-        print("6. Mega Good-Bad Build")
-        print("7. Quit")
+        print("2. Update the Database")
+        print("3. More data in the database")
+        print("4. Crush Database")
+        print("5. Clean Database")
+        print("6. Mega Good-Bad ReBase")
+        print("7. Prepare Searchable Database")
+        print("8. Search Number")
+        print("9. Quit")
+
         selection = 3
         try:
             if waitBeforeStart:
@@ -508,6 +567,13 @@ def main():
             selection = int(input("What are we doing: "))
         except:
             print("That doesn't seem to be an int")
+
+        if selection == 0:
+            print("Help Selection")
+            print("Please select which one you need help explaining")
+            helpMenu()
+            # Do the dialog here of what each one is for
+
         if selection == 1:
             print("Creating the database")
             fileLog.write("[" + getTimeNow()+"] Selection: Create Database\n")
@@ -527,30 +593,48 @@ def main():
             fileLog.flush()
             print(FullDayData())
         elif selection == 4:
-            print("Cleaning Database")
-            fileLog.write("[" + getTimeNow() + "] Selection: Clean Database\n")
-            fileLog.flush()
-            dupCleanDatabase() # Duplicates in toRead file
-        elif selection == 5:
             print("Crushing Database")
             fileLog.write("[" + getTimeNow() + "] Selection: Update Database\n")
             fileLog.flush()
             crushDatabase()
+        elif selection == 5:
+            print("Cleaning Database")
+            fileLog.write("[" + getTimeNow() + "] Selection: Clean Database\n")
+            fileLog.flush()
+            dupCleanDatabase() # Duplicates in toRead file
         elif selection == 6:
             print("Merging all done files")
-            fileLog.write("[" + getTimeNow() + "] Selection: Mega Crush")
+            fileLog.write("[" + getTimeNow() + "] Selection: Mega Crush\n")
             fileLog.flush()
             rebase()
         elif selection == 7:
+            print("Preparing Database")
+            fileLog.write("[" + getTimeNow() + "] Selection: Preparing Database\n")
+            fileLog.flush()
+            prepDatabase()
+        elif selection == 8:
+            print("Done Building")
+            fileLog.write("[" + getTimeNow() + "] Selection: Done Build\n")
+            print("Moving on")
+            search = input("Would you like to search for number? (y/n)").lower() =='y'
+            fileLog.flush()
+            fileLog.close()
+        elif selection == 9:
             print("Quitting")
-            fileLog.write("[" + getTimeNow() + "] Selection: Exit\n")
+            fileLog.write("[" + getTimeNow() + "] Selection: Quitting\n")
             fileLog.flush()
             fileLog.close()
             running = False
+            search = False
         else:
             fileLog.write("[" + getTimeNow() + "] Selection: Invalid\n")
             fileLog.flush()
             print("That is not an option")
 
+        while search:
+            print("here is the code for searching")
+
+        print("That is the end of the program. Hope everything works")
+        
 
 main()
