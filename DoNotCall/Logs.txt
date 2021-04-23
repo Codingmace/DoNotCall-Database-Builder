@@ -74,4 +74,8 @@ Duplicate Count: 279419Final Size: 3866450Zeros Removed: 1182
 Invalid Numbers Removed: 7300
 Duplicate Count: 279419Final Size: 3866450Zeros Removed: 1182
 Invalid Numbers Removed: 7300
+Duplicate Count: 279419Final Size: 3866450Zeros Removed: 1182
+Invalid Numbers Removed: 7300
+Duplicate Count: 279419Final Size: 3866450Zeros Removed: 1182
+Invalid Numbers Removed: 7300
 Duplicate Count: 279419Final Size: 3866450

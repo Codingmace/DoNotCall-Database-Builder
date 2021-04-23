@@ -2544,3 +2544,38 @@
 [04/22/2021, 19:53:44] Removed: 2021-04-19
 [04/22/2021, 19:53:44] Removed: 2021-04-20
 [04/22/2021, 19:53:44] Removed: 2021-04-21
+[04/22/2021, 19:54:44] Selection: Mega Crush
+[04/22/2021, 19:54:55] File Issue: 2021-04-14.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-15.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-16.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-17.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-18.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-19.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-20.json
+[04/22/2021, 19:54:55] File Issue: 2021-04-21.json
+[04/22/2021, 19:58:05] Selection: Preparing Database
+[04/22/2021, 19:59:25] Selection: Quitting
+[04/22/2021, 20:14:09] Selection: Clean Database
+[04/22/2021, 20:14:09] Removing: Completed
+[04/22/2021, 20:14:09] Removing: lastDate.txt
+[04/22/2021, 20:14:09] Removing: toRead.txt.old
+[04/22/2021, 20:14:10] Selection: Clean Database
+[04/22/2021, 20:14:11] Removing: Completed
+[04/22/2021, 20:14:11] Removing: lastDate.txt
+[04/22/2021, 20:14:11] Removing: toRead.txt.old
+[04/22/2021, 20:14:11] Selection: Clean Database
+[04/22/2021, 20:14:11] Removing: Completed
+[04/22/2021, 20:14:11] Removing: lastDate.txt
+[04/22/2021, 20:14:11] Removing: toRead.txt.old
+[04/22/2021, 20:14:14] Selection: Clean Database
+[04/22/2021, 20:14:14] Removing: Completed
+[04/22/2021, 20:14:14] Removing: lastDate.txt
+[04/22/2021, 20:14:14] Removing: toRead.txt.old
+[04/22/2021, 20:14:14] Selection: Clean Database
+[04/22/2021, 20:14:14] Removing: Completed
+[04/22/2021, 20:14:14] Removing: lastDate.txt
+[04/22/2021, 20:14:14] Removing: toRead.txt.old
+[04/22/2021, 20:14:15] Selection: Clean Database
+[04/22/2021, 20:14:15] Removing: Completed
+[04/22/2021, 20:14:15] Removing: lastDate.txt
+[04/22/2021, 20:14:15] Removing: toRead.txt.old
