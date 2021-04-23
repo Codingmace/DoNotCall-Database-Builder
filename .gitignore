@@ -1,9 +1,6 @@
-
-DoNotCall/goodNumbers.json
-DoNotCall/badNumbers.json
-DoNotCall/result.json
-DoNotCall/optumData.csv
-DoNotCall/Data/4-14-21/badNumbers.json
-DoNotCall/Data/4-14-21/goodNumbers.json
-DoNotCall/compare.csv
-DoNotCall/compareSort.csv
+goodNumbers.json
+badNumbers.json
+compare.csv
+compareSort.csv
+logs.txt
+DncApiKey.txt
