@@ -10,7 +10,7 @@ def searchNumber():
     phoneNumber = "000-000-0000"
     done = False
     allNumbers = []
-    filename = "compare.csv"
+    filename = "compareSort.csv"
     searchAll= "Y" # Including bad numbers; Implement later on
 
     if os.path.exists(filename):
@@ -37,25 +37,14 @@ def searchNumber():
             splits = line.strip().split(",")
             listNumbers.append(line)
             allNumbers.append(splits)
-#            if(splits[0] == "7179833229"):
-#                print(line)
-#            if splits[2] == "717":
-#                if line not in listNumbers:
-#                    listNumbers.append(line)
-#                    allNumbers.append(splits)
-#                    if len(listNumbers) % 1000 == 0:
-#                        print("Lengthe of list" ,  len(listNumbers))
-#                else:
-#                    dupCount += 1
-#                    print("Dup", dupCount,"listSize", len(listNumbers))
-            
+
     print("Loaded ", str(len(listNumbers)) + " entries")
     print("Duplicate Count", str(dupCount))
     
     while (not done):
         phoneNumber = "000-000-0000"
         done = True
-#        phoneNumber = input("Enter Phone Number (q to quit, h for help): ")
+        phoneNumber = input("Enter Phone Number (q to quit, h for help): ")
         phoneNumber = phoneNumber.replace("+", "").replace("-","").replace("(","").replace(")","")
         if phoneNumber == "q":
             print("Ok now we quit")
@@ -75,11 +64,12 @@ def searchNumber():
             for e in allNumbers:
                 if e[0] == phoneNumber:
                     if e[1] in idList: # Faster to find duplicates here
-                        print("Shit something went wrong")
+                        name = "Removed an entry"
+#                        print("Shit something went wrong")
                     else:
                         idList.append(e[1])
 
-# Verify for duplicates here
+        # Verify for duplicates here ---- No duplicates should exist in the new data.
             if len(idList) == 0:
                 print("The number " + phoneNumber + " had no results found")
                 continue
@@ -89,9 +79,10 @@ def searchNumber():
                 
                 extended = input("Would you like all the information (Y/N)? ")
                 if extended.lower() == "y":
-                    for i in idList:
-                        print("Id 1: " + i)
-                        print("Write request here. Very easy")
+                    for i in range(0, len(idList)):
+#                    for i in idList:
+                        print("Id " + str(i) + " : " + idList[i])
+#                        print("Write request here. Very easy")
                         print("Print out the request")
                 elif extended.lower() == "n":
                     print("Ok I think my work here is done then")
@@ -100,7 +91,5 @@ def searchNumber():
         else:
             print("That is an invalid phone number. Try again")
             
-
-
 
 searchNumber()

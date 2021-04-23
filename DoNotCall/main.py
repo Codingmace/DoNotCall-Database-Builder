@@ -4,10 +4,6 @@ import requests
 from datetime import datetime, timedelta, date
 import time
 import send2trash
-
-
-# A connection error occured, Add a validator for input
-# Need to check that the folders are complete before crushing them
 # Could have an issue with removing the folders. check back in a little.
 # Add timeout for the request because it is taking too long sometimes
 # Missed all the dates in the missed.zip file when creating the database. Also not sure if it was in the toRead File
