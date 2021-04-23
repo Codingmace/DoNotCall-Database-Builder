@@ -82,14 +82,26 @@ def searchNumber():
                     for i in range(0, len(idList)):
 #                    for i in idList:
                         print("Id " + str(i) + " : " + idList[i])
+                        getRef(idList[i])
 #                        print("Write request here. Very easy")
-                        print("Print out the request")
+#                        print("Print out the request")
                 elif extended.lower() == "n":
                     print("Ok I think my work here is done then")
                 else:
                     print("Well that isn't an option. So I guess I am done")
         else:
             print("That is an invalid phone number. Try again")
-            
+
+
+
+
+def getRef(idNumb):
+    import requests
+    baseUrl = "https://api.ftc.gov/v0/dnc-complaints/"
+    apiKey ="xQEdbYXrktEA8OoKp835FM8GZ4yWife24A5JjepE"
+    response = requests.get(baseUrl + idNumb + "?api_key=" + apiKey)
+    print(response.text)
+
+
 
 searchNumber()

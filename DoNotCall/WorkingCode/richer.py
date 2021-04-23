@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import time
 
 def validResponse(statusCode):
     if (statusCode == 200):
@@ -48,52 +49,79 @@ def createFolder(folderpath):
     else:
         os.makedirs(folderpath)
         
-def richer(dncApiKey):
-    print("Does the enrichment of the data")
-    baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
-    subDays = open("Done/toRead.txt", "r") # For the sub parts
-    lines = subDays.readlines()
-    currentDir = "Base/"
-    # Chec if the folder exists. Maybe rewrite the file. For now ignoring it
-    for line in lines:
-        # Check to see if file already exist so I don't waste time
-        splits = line.split(" ")
-        offsetCount = 0
-        currentDir = "Base/" + splits[0]
-        if os.path.exists(currentDir): # Check if everything there
-            if os.path.exists(currentDir + "/" + splits[1] +".json"): # Last file exists
-                print("Skip this folder because it is already done")
-                continue
-            else: # Continue where left off
-                print("Continue at the biggest number file in that folder")
-                subFiles = os.listdir(currentDir)
-                offsetCount = maximum(subFiles)
-        else:
-            print("It doesn't exist so creating it myself")
-            os.makedirs(currentDir)
-
-        lastEntry = int(splits[1])
-        while (offsetCount < lastEntry):
-            response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
-            if not validResponse(response.status_code):
-                return "Did not finish. Please Rerun"
-            data = response.json()
-            response.close()
-            data = cleanJson(data)
-            output = open(currentDir + "/" + str(offsetCount) + "-" + str(offsetCount + 50) + ".json", "w")
-            json.dump(data, output)
-            output.flush()
-            output.close()
-            offsetCount += 50
-        print("Finished with " + splits[0])
-    return "Awesome. It actually finished"
+def richer(dncApiKeys):
+    count= 0
+    while len(dncApiKeys) > 0:
+        print("Does the enrichment of the data")
+        baseUrl = "https://api.ftc.gov/v0/dnc-complaints?api_key="
+        subDays = open("Done/toRead.txt", "r") # For the sub parts
+        lines = subDays.readlines()
+        currentDir = "Base/"
+        # Check if the folder exists. Maybe rewrite the file. For now ignoring it
+        for line in lines:
+            # Check to see if file already exist so I don't waste time
+            splits = line.split(" ")
+            offsetCount = 0
+            currentDir = "Base/" + splits[0]
+            if os.path.exists(currentDir): # Check if everything there
+                if os.path.exists(currentDir + "/" + splits[1] +".json"): # Last file exists
+                    print("Skip this folder because it is already done")
+                    continue
+                else: # Continue where left off
+                    print("Continue at the biggest number file in that folder")
+                    subFiles = os.listdir(currentDir)
+                    offsetCount = maximum(subFiles)
+            else:
+                print("It doesn't exist so creating it myself")
+                os.makedirs(currentDir)
+            lastEntry = int(splits[1])
+            while (offsetCount < lastEntry):
+                if len(dncApiKeys) == 0:
+                    return "Did not finish. Please ReRun"
+                curIndex = count % len(dncApiKeys)
+                dncApiKey = dncApiKeys[curIndex].strip()
+                count += 1
+                response = requests.get(baseUrl + dncApiKey + "&created_date=\"" + splits[0] + "\"&offset=" + str(offsetCount))
+                time.sleep(.85)
+                if not validResponse(response.status_code):
+                    time.sleep(10)
+                    print(dncApiKeys)
+                    print(dncApiKey)
+                    try:
+                        dncApiKeys.remove(dncApiKey)
+                    except:
+                        try:
+                            dncApiKeys.remove(curIndex)
+                        except:
+                            print("That fucked up")
+                            return "This fucked up"
+                    print("Removed Key " + dncApiKey + ". " + str(len(dncApiKeys))+" keys left")
+                    continue
+#                    return "Did not finish. Please Rerun"
+                data = response.json()
+                response.close()
+                data = cleanJson(data)
+                output = open(currentDir + "/" + str(offsetCount) + "-" + str(offsetCount + 50) + ".json", "w")
+                json.dump(data, output)
+                output.flush()
+                output.close()
+                offsetCount += 50
+            print("Finished with " + splits[0])
+        return "Awesome. It actually finished"
 
 def FullDayData():
     f = open("DncApiKey.txt" , "r")
-    lines = f.readlines()
-    for line in lines:
-        print("Using Key "+ line)
-        print(richer(line))
+    lisp = f.readlines()
+    lines= []
+    for line in lisp:
+        lines.append(line.strip())
+    for i in range(0, 10):
+        lx = lines
+        richer(lx) #Is deleting permentantly so loop is useless.
+        time.sleep(5)
+#    for line in lines:
+#        print("Using Key "+ line)
+#        print(richer(line))
         
 
 FullDayData() 
