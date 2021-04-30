@@ -7,7 +7,7 @@ import os
 
 
 def searchNumber():
-    phoneNumber = "000-000-0000"
+    phoneNumber = "5128565898"
     done = False
     allNumbers = []
     filename = "compareSort.csv"
@@ -42,7 +42,7 @@ def searchNumber():
     print("Duplicate Count", str(dupCount))
     
     while (not done):
-        phoneNumber = "000-000-0000"
+        phoneNumber = "2064086373"
         done = True
         phoneNumber = input("Enter Phone Number (q to quit, h for help): ")
         phoneNumber = phoneNumber.replace("+", "").replace("-","").replace("(","").replace(")","")
@@ -63,6 +63,7 @@ def searchNumber():
             idList = []
             for e in allNumbers:
                 if e[0] == phoneNumber:
+                    print(e[0])
                     if e[1] in idList: # Faster to find duplicates here
                         name = "Removed an entry"
 #                        print("Shit something went wrong")
